@@ -68,7 +68,7 @@ async def health_check():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Service health check failed: {str(e)}"
         )
-@app.get("/create_index")
+@app.get("/create_index", tags=["Documents"])
 async def create_index():
     """
     Endpoint to add new documents to the vector database.
@@ -81,7 +81,7 @@ async def create_index():
     except Exception as e:
         raise Exception("Error adding new documents to the vector database")
     
-@app.get("/ingest-documents")
+@app.get("/ingest-documents", tags=["Documents"])
 async def create_index():
     """
     Endpoint to add new documents to the vector database.

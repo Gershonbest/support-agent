@@ -34,10 +34,10 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 # Load environment variables after setting up the path
 load_dotenv()
-# WORKDIR = os.getenv("WORKDIR")
-# if WORKDIR:
-#     os.chdir(WORKDIR)
-#     logging.info(f"Changed working directory to: {WORKDIR}")
+WORKDIR = os.getenv("WORKDIR")
+if WORKDIR:
+    os.chdir(WORKDIR)
+    logging.info(f"Changed working directory to: {WORKDIR}")
 
 class PineconeManagment:
     def __init__(self):

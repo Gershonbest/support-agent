@@ -17,10 +17,10 @@ class VectorDatabase:
         self.vdb_app.creating_index(index_name = self.index_name, docs = docs)
 
     def ingest_index(self):
-        vdb_app = PineconeManagment()
-        vdb_app.loading_vdb(index_name = self.index_name)
-        docs = vdb_app.reading_datasource()
-        response = vdb_app.adding_documents(new_info = docs)
+        docs = self.vdb_app.reading_datasource()
+        self.vdb_app.loading_vdb(index_name = self.index_name)
+        print(f"Document::::{docs}")
+        response = self.vdb_app.adding_documents(new_info = docs)
         return response
 
 
