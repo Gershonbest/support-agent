@@ -15,5 +15,5 @@ def get_model(provider:Literal['openai','google','meta','anthropic']):
     elif provider == "google":
         return ChatGoogleGenerativeAI(temperature=0, model_name="gemini-1.5-pro-exp-0801")
     elif provider == "meta":
-        return ChatGroq(temperature=0, model_name="mixtral-8x7b-32768")
+        return ChatGroq(temperature=0, model_name="deepseek-r1-distill-llama-70b")
     

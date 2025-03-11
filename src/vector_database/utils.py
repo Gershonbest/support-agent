@@ -19,7 +19,6 @@ BACKEND_DIR = str(Path(__file__).resolve().parent.parent.parent)
 sys.path.append(BACKEND_DIR)
 
 from langchain_community.document_loaders import JSONLoader
-from langchain_pinecone import PineconeEmbeddings
 from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
 import time
@@ -29,7 +28,7 @@ from langchain_core.documents import Document
 from typing import Dict
 from src.validators.pinecone_validators import IndexNameStructure, ExpectedNewData
 from src.utils.env_setup import _set_env
-from langchain_huggingface import HuggingFaceEmbeddings
+# from langchain_huggingface import HuggingFaceEmbeddings
 
 
 # Load environment variables after setting up the path
@@ -50,7 +49,7 @@ class PineconeManagment:
             # self.embedding = HuggingFaceEmbeddings(
             #     model_name=self.model_name, model_kwargs=self.model_kwargs, encode_kwargs=self.encode_kwargs
             # )
-            logging.info("Huggingface Embeddings initialized successfully")
+            logging.info("OpenAI Embeddings initialized successfully")
         except Exception as e:
             logging.error(f"Failed to initialize OpenAI Embeddings: {str(e)}")
             raise
@@ -132,6 +131,18 @@ class PineconeManagment:
             logging.error(f"Failed to load vector database: {str(e)}")
             raise
 
+    def add_doc_to_vdb(self, index_name: str, docs: Document):
+        logging.info(f"Loading vector database for index: {index_name}")
+        try:
+            PineconeVectorStore.from_documents(
+                documents=docs, 
+                embedding=self.embedding, 
+                index_name=index_name
+            )
+            return f"Index '{index_name}' populated with {len(docs)} documents"
+        except Exception as e:
+            logging.error(f"Failed to add documents database: {str(e)}")
+            raise
     def adding_documents(self, new_info: Dict[str, str]):
         logging.info("Adding new documents to vector database...")
         try:
