@@ -18,13 +18,4 @@ class VectorDatabase:
 
     def ingest_index(self):
         docs = self.vdb_app.reading_datasource()
-        print(f"Document :::: {docs}")
-        # self.vdb_app.loading_vdb(index_name = self.index_name)
         self.vdb_app.add_doc_to_vdb(index_name=self.index_name, docs= docs)
-        
-        # response = self.vdb_app.adding_documents(new_info = docs)
-        # return response
-
-
-# if __name__ == '__main__':
-#     deploy_vectordatabase(index_name = 'support-chatbot')
