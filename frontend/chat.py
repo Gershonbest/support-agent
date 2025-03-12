@@ -3,6 +3,7 @@ import requests
 import time
 from audio_recorder_streamlit import audio_recorder
 from page_ui import UI
+from utils import whisper_transcribe
 
 # Streamlit UI Setup
 st.set_page_config(page_title="VeraCLEAR Skincare Chatbot", page_icon="💆", layout="wide")
@@ -29,6 +30,8 @@ if clear_chat:
     st.session_state["messages"] = []  # Clear the chat history
     st.success("Chat history cleared!")  # Provide feedback to the user
 
+user_input = None
+
 # Display Chat History
 for message in st.session_state["messages"]:
     with st.chat_message(message["role"]):
@@ -42,10 +45,15 @@ if input_method == "Text":
 else:
     st.write("Click the microphone to record your message:")
     audio = audio_recorder()
+    print(audio)
     if audio:
         # Process audio input (e.g., convert to text using a speech-to-text API)
-        user_input = "Voice input detected. Processing..."  # Replace with actual speech-to-text conversion
-        st.write(user_input)  # Placeholder for audio processing
+        user_input = whisper_transcribe(audio)  # Convert audio to text
+        if user_input:
+            st.write(f"You said: {user_input}")
+        else:
+            st.write("Sorry, I couldn't understand the audio.")
+        # st.write(user_input)  # Placeholder for audio processing
 
 # Handle User Input
 if user_input:
