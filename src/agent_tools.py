@@ -97,3 +97,18 @@ def multiplication(number_1: int, number_2: int):
     """
     logging.info("Performing multiplication..")
     return number_1 * number_2
+
+@tool
+def subtract(number_1: int, number_2: int):
+    """
+    Performs subtraction of two numbers.
+
+    Parameters:
+        number_1 (int): The first number
+        number_2 (int): The second number
+
+    Returns:
+        The difference of the two numbers
+    """
+    logging.info("Performing subtraction..")
+    return number_1 - number_2

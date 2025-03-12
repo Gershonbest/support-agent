@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware  # Add this import
 from typing import Optional
 from datetime import datetime
-import uvicorn
+import uvicorn, time
 from contextlib import asynccontextmanager
 
 from langchain_core.messages import HumanMessage
@@ -39,6 +39,18 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+def generate_response(message: str, skin_type: str):
+    # Simulate AI processing response in chunks
+    responses = [
+        f"Analyzing your message for {skin_type} skin...",
+        "Finding the best skincare advice...",
+        "Here’s a great tip: Hydration is key for healthy skin!",
+        "Would you like more product recommendations?"
+    ]
+    for chunk in responses:
+        yield chunk + " "
+        time.sleep(1)  # Simulating delay
 
 # Add CORS middleware configuration
 app.add_middleware(
@@ -99,6 +111,57 @@ async def create_index():
           status_code=status.HTTP_200_OK,
           tags=["Chat"])
 async def chat_endpoint(request: ChatRequest):
+    """
+    Endpoint to interact with the chat model.
+    Accepts a message and optional thread_id, returns the model's response.
+    """
+    try:
+        # Initialize the state with the user's message
+        initial_state = {
+            "messages": [
+                HumanMessage(content=request.message)
+            ]
+        }
+        
+        # Configuration for the chat
+        config = {
+            "configurable": {
+                "thread_id": request.thread_id
+            }
+        }
+
+        # Process the message through the LangGraph app
+        response = None
+        for event in chat_app.stream(initial_state, config=config):
+            if event.get("agent"):
+                msg = event['agent']['messages'][-1].content
+                if msg:
+                    response = msg
+                    break
+
+        if not response:
+            raise ValueError("No response generated from the model")
+
+        return ChatResponse(
+            response=response,
+            timestamp=datetime.now()
+        )
+
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(ve)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing chat request: {str(e)}"
+        )
+    
+@app.post("/chat-stream",
+          status_code=status.HTTP_200_OK,
+          tags=["Chat"])
+async def chat_stream_endpoint(request: ChatRequest):
     """
     Endpoint to interact with the chat model.
     Accepts a message and optional thread_id, returns the model's response.
