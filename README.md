@@ -1,24 +1,33 @@
-# HappyAI Chat
+# Skincare AI Chatbot
 
-A sophisticated customer support assistant powered by LangChain LangGraph, FastAPI, and Pinecone. This project implements a conversational AI system that can provide information about HappyAI's services, expertise, and projects while maintaining context through vector database integration.
+A sophisticated AI-powered skincare consultant using LangChain LangGraph, FastAPI, and Pinecone. This chatbot provides personalized skincare advice, analyzes images, and suggests routines based on AI-driven assessments. It also supports **voice-based conversations** using **Whisper** for speech recognition and **ElevenLabs** for speech synthesis.
 
 ## Features
 
-- **Intelligent Chat Interface**: Conversational AI assistant specialized in HappyAI customer support
-- **Vector Database Integration**: Utilizes Pinecone for efficient similarity search and document retrieval
-- **Web Search Capability**: Integrates with Tavily for real-time web search functionality
-- **FastAPI Backend**: High-performance API with automatic OpenAPI documentation
-- **Docker Support**: Containerized deployment for consistency across environments
-- **Comprehensive Logging**: Detailed logging system for monitoring and debugging
+- **AI-Powered Skincare Assistant**: Provides personalized skincare recommendations based on user input.
+- **Image-Based Skin Analysis**: Uses AI to analyze skin conditions from uploaded images.
+- **Voice Conversation Support**: Integrates Whisper for voice input processing and ElevenLabs for natural-sounding voice responses.
+- **Agentic Framework**: Utilizes an agentic approach, chaining different tools together for enhanced interactions.
+- **Vector Database Integration**: Utilizes Pinecone for efficient similarity search and knowledge retrieval.
+- **Web Search Capability**: Integrates with Tavily for real-time skincare-related searches.
+- **FastAPI Backend**: High-performance API with automatic OpenAPI documentation.
+- **Streamlit Frontend**: User-friendly web interface for chatbot interaction.
+- **Comprehensive Logging**: Detailed logs for monitoring and debugging.
 
 ## Prerequisites
 
 - Python 3.12+
-- Docker (for containerized deployment)
+- Poetry (for dependency management)
 - API Keys:
-  - OpenAI API key
-  - Pinecone API key
-  - Tavily API key (for web search functionality)
+  - `GROQ_API_KEY`
+  - `PINECONE_API_KEY`
+  - `TAVILY_API_KEY`
+  - `OPENAI_API_KEY`
+  - `ELEVEN_LAB_API_KEY`
+
+### Agentic Flow & Architecture
+
+![Agentic Flow & Architecture](langchain_graph_mermaid.png)
 
 ## Installation
 
@@ -26,79 +35,59 @@ A sophisticated customer support assistant powered by LangChain LangGraph, FastA
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/okoliechykwuka/happyai-chat.git
-   cd happyai-chat
+   git clone https://github.com/Gershonbest/support-agent.git
+   cd skincare-ai-chatbot
    ```
 
-2. Create and activate a virtual environment:
+2. Install Poetry if you haven't already:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install poetry
    ```
 
-3. Install dependencies:
+3. Install dependencies using Poetry:
    ```bash
-   pip install -r requirements.txt
+   poetry install
    ```
 
-4. Set up environment variables:
+4. Activate the virtual environment:
+   - For older versions of Poetry:
+     ```bash
+     poetry shell
+     ```
+   - For the latest version of Poetry:
+     ```bash
+     eval $(poetry env activate)
+     ```
+
+5. Set up environment variables:
    Create a `.env` file in the root directory with the following variables:
    ```
-   OPENAI_API_KEY=your_openai_api_key
+   GROQ_API_KEY=your_groq_api_key
    PINECONE_API_KEY=your_pinecone_api_key
    TAVILY_API_KEY=your_tavily_api_key
+   OPENAI_API_KEY=your_openai_api_key
+   ELEVEN_LAB_API_KEY=your_eleven_lab_api_key
    ```
 
-### Docker Deployment
+### Running the Application
 
-1. Pull the Docker image:
-   ```bash
-   docker pull chukypedro15/happyai-chat
-   ```
+To start both the **FastAPI backend** and **Streamlit frontend**, simply run:
 
-2. Run the container:
-   ```bash
-   docker run -d -p 8000:8000 \
-     -e OPENAI_API_KEY=your_openai_api_key \
-     -e PINECONE_API_KEY=your_pinecone_api_key \
-     -e TAVILY_API_KEY=your_tavily_api_key \
-     chukypedro15/happyai-chat
-   ```
-
-## Project Structure
-
-```
-happyai-chat/
-├── data/
-│   └── faq.json
-├── src/
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   └── env_setup.py
-│   ├── validators/
-│   │   ├── agent_validators.py
-│   │   └── pinecone_validators.py
-│   ├── vector_database/
-│   │   ├── utils.py
-│   │   └── vector_db.py
-│   ├── agent_tools.py
-│   ├── agent.py
-│   └── models.py
-├── Dockerfile
-├── main.py
-├── requirements.txt
-└── README.md
+```bash
+python main.py
 ```
 
-## API Endpoints
+This will automatically start the backend and frontend together.
 
-### Health Check
+### API Endpoints
+
+#### Health Check
 ```
 GET /health
 ```
 Returns the current health status of the service.
 
-### Chat Endpoint
+#### Chat Endpoint
 ```
 POST /chat
 ```
@@ -111,42 +100,6 @@ Request body:
     "thread_id": "optional[int]"
 }
 ```
-
-## Usage
-
-### Starting the Server
-
-1. Local development:
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-2. Docker:
-   ```bash
-   docker run -p 8000:8000 yourdockerhub/happyai-chat
-   ```
-
-### Making Requests
-
-```python
-import requests
-
-url = "http://localhost:8000/chat"
-payload = {
-    "message": "What services does HappyAI offer?",
-    "thread_id": 42
-}
-response = requests.post(url, json=payload)
-print(response.json())
-```
-
-## Configuration
-
-The application can be configured through environment variables:
-
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `PINECONE_API_KEY`: Your Pinecone API key
-- `TAVILY_API_KEY`: Your Tavily API key
 
 ## Development
 
@@ -167,3 +120,7 @@ The application can be configured through environment variables:
 
 1. Add new methods to `PineconeManagment` class in `src/vector_database/vector_db.py`.
 2. Update validators in `src/validators/pinecone_validators.py` if needed.
+
+## License
+
+This project is licensed under the MIT License.

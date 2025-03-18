@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 import time
 from audio_recorder_streamlit import audio_recorder
-from page_ui import UI
-from utils import whisper_transcribe
+from frontend.page_ui import UI
+from frontend.utils import whisper_transcribe, text2speech
 
 # Streamlit UI Setup
 st.set_page_config(page_title="VeraCLEAR Skincare Chatbot", page_icon="💆", layout="wide")
@@ -45,7 +45,7 @@ if input_method == "Text":
 else:
     st.write("Click the microphone to record your message:")
     audio = audio_recorder()
-    print(audio)
+    # print(audio)
     if audio:
         # Process audio input (e.g., convert to text using a speech-to-text API)
         user_input = whisper_transcribe(audio)  # Convert audio to text
@@ -68,6 +68,8 @@ if user_input:
             response = requests.post(api_url, json={"message": user_input, "thread_id": thread_id})
             if response.status_code == 200:
                 bot_reply = response.json().get("response", "Sorry, I couldn't process your request.")
+                # print(f"reply: %s" % bot_reply)
+                text2speech(bot_reply)
             else:
                 bot_reply = f"Error: Unable to connect to the chatbot API. Status code: {response.status_code}"
         except Exception as e:
