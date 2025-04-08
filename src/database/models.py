@@ -1,13 +1,16 @@
 from sqlalchemy import Column, String, JSON, Text, DateTime, func
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy import create_engine
+from config.settings import Config
 
-DATABASE_URL = "postgresql://username:password@localhost/memory_db"
+DATABASE_URL = Config.DATABASE_URL
 
 # Set up SQLAlchemy ORM
-Base = declarative_base()
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine)
+class Base(DeclarativeBase):
+    pass
+
+# engine = create_engine(DATABASE_URL)
+# SessionLocal = sessionmaker(bind=engine)
 
 class ProceduralMemory(Base):
     __tablename__ = "procedural_memory"
@@ -40,5 +43,5 @@ class ChatHistory(Base):
     message = Column(JSON)
     created_at = Column(DateTime, default=func.now())
 
-# Create tables
-Base.metadata.create_all(engine)
+# # Create tables
+# Base.metadata.create_all(engine)
