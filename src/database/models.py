@@ -1,0 +1,44 @@
+from sqlalchemy import Column, String, JSON, Text, DateTime, func
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import create_engine
+
+DATABASE_URL = "postgresql://username:password@localhost/memory_db"
+
+# Set up SQLAlchemy ORM
+Base = declarative_base()
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine)
+
+class ProceduralMemory(Base):
+    __tablename__ = "procedural_memory"
+    skill_name = Column(String, primary_key=True)
+    steps = Column(Text)
+    created_at = Column(DateTime, default=func.now())
+
+class SemanticMemory(Base):
+    __tablename__ = "semantic_memory"
+    user_id = Column(String, primary_key=True)
+    name = Column(String)
+    preferences = Column(JSON)
+    learned_facts = Column(JSON)
+    created_at = Column(DateTime, default=func.now())
+
+class EpisodicMemory(Base):
+    __tablename__ = "episodic_memory"
+    user_id = Column(String, primary_key=True)
+    event_id = Column(String, primary_key=True)
+    event_name = Column(String)
+    event_description = Column(String)
+    created_at = Column(DateTime, default=func.now())
+
+
+
+class ChatHistory(Base):
+    __tablename__ = "chat_history"
+    user_id = Column(String, primary_key=True)
+    session_id = Column(String)
+    message = Column(JSON)
+    created_at = Column(DateTime, default=func.now())
+
+# Create tables
+Base.metadata.create_all(engine)
