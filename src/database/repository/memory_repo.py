@@ -34,10 +34,10 @@ class ProceduralMemoryRepository:
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def add_skill(self, skill_name: str, steps: str) -> ProceduralMemory:
+    async def add_skill(self,user_id:str, skill_name: str, steps: str) -> ProceduralMemory:
         """Add a new procedural memory"""
         memory = ProceduralMemory(
-            skill_name=skill_name, steps=steps, created_at=datetime.now()
+            user_id=user_id, skill_name=skill_name, steps=steps, created_at=datetime.now()
         )
         self.session.add(memory)
         await self.session.commit()

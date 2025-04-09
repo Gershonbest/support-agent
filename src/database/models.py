@@ -14,12 +14,15 @@ class Base(DeclarativeBase):
 
 class ProceduralMemory(Base):
     __tablename__ = "procedural_memory"
-    skill_name = Column(String, primary_key=True)
+
+    user_id = Column(String, primary_key=True)
+    skill_name = Column(String)
     steps = Column(Text)
     created_at = Column(DateTime, default=func.now())
 
 class SemanticMemory(Base):
     __tablename__ = "semantic_memory"
+    
     user_id = Column(String, primary_key=True)
     name = Column(String)
     preferences = Column(JSON)
@@ -28,6 +31,7 @@ class SemanticMemory(Base):
 
 class EpisodicMemory(Base):
     __tablename__ = "episodic_memory"
+
     user_id = Column(String, primary_key=True)
     event_id = Column(String, primary_key=True)
     event_name = Column(String)
@@ -38,6 +42,7 @@ class EpisodicMemory(Base):
 
 class ChatHistory(Base):
     __tablename__ = "chat_history"
+
     user_id = Column(String, primary_key=True)
     session_id = Column(String)
     message = Column(JSON)
