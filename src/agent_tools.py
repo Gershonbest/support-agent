@@ -112,3 +112,4 @@ def subtract(number_1: int, number_2: int):
     """
     logging.info("Performing subtraction..")
     return number_1 - number_2
+

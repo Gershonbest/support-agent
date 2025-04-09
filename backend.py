@@ -209,9 +209,18 @@ async def chat_stream_endpoint(request: ChatRequest):
             detail=f"Error processing chat request: {str(e)}"
         )
 
+# if __name__ == "__main__":
+#     uvicorn.run(
+#         "main:app",
+#         host="0.0.0.0",
+#         port=8000,
+#         reload=True,
+#         workers=1
+#     )
+
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
+        "backend:app",
         host="0.0.0.0",
         port=8000,
         reload=True,

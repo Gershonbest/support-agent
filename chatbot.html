@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Skincare Chatbot</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #f1e9e9;
+      }
+
+      .chat-widget-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #453bd9, #2938dd);
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .chat-widget-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .chat-widget-button svg {
+        width: 30px;
+        height: 30px;
+        color: #fff;
+      }
+
+      .chat-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 380px;
+        height: 600px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 5px 40px rgba(0, 0, 0, 0.2);
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .chat-widget.active {
+        display: flex;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .chat-widget.minimized {
+        height: 60px;
+        overflow: hidden;
+        bottom: 85px;
+      }
+
+      .chat-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #436dd7, #275dba);
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .chat-header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .chat-header img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+      }
+
+      .chat-header h2 {
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .chat-controls {
+        display: flex;
+        gap: 8px;
+      }
+
+      .chat-control-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: #000;
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+      }
+
+      .chat-control-button:hover {
+        opacity: 1;
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+      }
+
+      .message {
+        margin-bottom: 16px;
+        max-width: 85%;
+        animation: messageAppear 0.3s ease;
+      }
+
+      @keyframes messageAppear {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message.bot {
+        margin-right: auto;
+      }
+
+      .message.user {
+        margin-left: auto;
+      }
+
+      .message-content {
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 14px;
+        line-height: 1.5;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        position: relative;
+      }
+
+      .bot .message-content {
+        background: white;
+        border: 1px solid #e9ecef;
+      }
+
+      .user .message-content {
+        background: #4f4ad4;
+        color: #000;
+      }
+
+      .message-time {
+        font-size: 11px;
+        color: #6c757d;
+        margin-top: 4px;
+        text-align: right;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+      }
+
+      .message-status {
+        font-size: 12px;
+        color: #6c757d;
+      }
+
+      .message-status.read {
+        color: #4f4ad4;
+      }
+
+      .quick-replies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .quick-reply {
+        background: #f1f3f5;
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .quick-reply:hover {
+        background: #e9ecef;
+        transform: translateY(-1px);
+      }
+
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 12px 16px;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        width: fit-content;
+        margin-bottom: 16px;
+        animation: messageAppear 0.3s ease;
+      }
+
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #adb5bd;
+        border-radius: 50%;
+        animation: typingAnimation 1.4s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes typingAnimation {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-6px);
+        }
+      }
+
+      .chat-input {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #e9ecef;
+      }
+
+      .chat-input form {
+        display: flex;
+        gap: 12px;
+      }
+
+      .chat-input input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+      }
+
+      .chat-input input:focus {
+        outline: none;
+        border-color: #3a3cc6;
+      }
+
+      .chat-input button {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #cec48b, #495ec8);
+        color: #000;
+        border: none;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .chat-input button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(88, 134, 179, 0.3);
+      }
+
+      @media (max-width: 480px) {
+        .chat-widget {
+          width: calc(100% - 40px);
+          height: calc(100% - 120px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Chat Widget Button -->
+    <button class="chat-widget-button" aria-label="Open chat">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+        />
+      </svg>
+    </button>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+      <div class="chat-header">
+        <div class="chat-header-title">
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z'/%3E%3C/svg%3E"
+            alt="Bot Avatar"
+          />
+          <h2>LENTA RealEstate AI Assistant</h2>
+        </div>
+        <div class="chat-controls">
+          <button
+            class="chat-control-button minimize-button"
+            aria-label="Minimize chat"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <button
+            class="chat-control-button chat-close"
+            aria-label="Close chat"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="chat-messages">
+        <div class="message bot">
+          <div class="message-content">
+            Hello! I'm your LENTA RealEstate AI Assistant. How can I help you today?
+            <div class="quick-replies">
+              <!-- <div class="quick-reply">What's my skin type?</div>
+              <div class="quick-reply">Recommend a routine</div>
+              <div class="quick-reply">Help with acne</div>
+              <div class="quick-reply">Anti-aging tips</div> -->
+            </div>
+          </div>
+          <div class="message-time">Just now</div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <form id="chat-form">
+          <input
+            type="text"
+            placeholder="Type your message..."
+            aria-label="Message"
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const chatButton = document.querySelector(".chat-widget-button");
+      const chatWidget = document.querySelector(".chat-widget");
+      const chatClose = document.querySelector(".chat-close");
+      const minimizeButton = document.querySelector(".minimize-button");
+      const chatForm = document.getElementById("chat-form");
+      const chatMessages = document.querySelector(".chat-messages");
+
+      let isTyping = false;
+      let chatHistory = [];
+      let currentStreamingMessage = null;
+
+      // Common skincare questions for quick replies
+      // const commonQuestions = [
+      //   "What's my skin type?",
+      //   "Recommend a morning routine",
+      //   "Best products for dry skin",
+      //   "How to treat acne scars",
+      //   "Anti-aging tips for 30s",
+      //   "Sensitive skin solutions",
+      //   "Dark spot treatments"
+      // ];
+
+      const commonQuestions = [
+        "How do I buy a home?",
+        "Best neighborhoods to invest in",
+        "How to get a mortgage?",
+        "Tips for first-time home buyers",
+        "How do I sell my house fast?",
+        "Best time to sell a home",
+        "What are closing costs?"
+      ];
+
+      // Toggle chat widget
+      chatButton.addEventListener("click", () => {
+        chatWidget.classList.add("active");
+        chatWidget.classList.remove("minimized");
+      });
+
+      // Close chat and clear history
+      chatClose.addEventListener("click", () => {
+        chatWidget.classList.remove("active");
+        chatMessages.innerHTML = `
+              <div class="message bot">
+                  <div class="message-content">
+                      Hello! I'm your LENTA RealEstate AI Assistant. How can I help you today?
+                      <div class="quick-replies">
+                        ${commonQuestions.slice(0,4).map(q => 
+                          `<div class="quick-reply">${q}</div>`
+                        ).join('')}
+                      </div>
+                  </div>
+                  <div class="message-time">Just now</div>
+              </div>
+          `;
+        chatHistory = [];
+        // Reattach quick reply event listeners
+        attachQuickReplyListeners();
+      });
+
+      // Minimize chat
+      minimizeButton.addEventListener("click", () => {
+        chatWidget.classList.toggle("minimized");
+      });
+
+      function addTypingIndicator() {
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "typing-indicator";
+        typingDiv.innerHTML = `
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+          `;
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return typingDiv;
+      }
+
+      function removeTypingIndicator() {
+        const typingIndicator = document.querySelector(".typing-indicator");
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+      }
+
+      function formatTime(date) {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        return `${hours}:${minutes} ${ampm}`;
+      }
+
+      function createMessageElement(sender) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message", sender);
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.classList.add("message-content");
+        
+        const timeDiv = document.createElement("div");
+        timeDiv.classList.add("message-time");
+        timeDiv.textContent = formatTime(new Date());
+        
+        // Add status indicator for user messages
+        if (sender === "user") {
+          const statusSpan = document.createElement("span");
+          statusSpan.classList.add("message-status");
+          statusSpan.innerHTML = "✓";
+          timeDiv.appendChild(statusSpan);
+          
+          // Mark as read after a short delay
+          setTimeout(() => {
+            statusSpan.classList.add("read");
+            statusSpan.innerHTML = "✓✓";
+          }, 1000);
+        }
+        
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(timeDiv);
+        
+        return { messageDiv, contentDiv };
+      }
+
+      function addMessage(text, sender) {
+        const { messageDiv, contentDiv } = createMessageElement(sender);
+        
+        if (sender === "bot") {
+          contentDiv.innerHTML = marked.parse(text);
+          
+          // Add quick replies for bot messages that aren't responses to quick replies
+          if (!text.includes("You asked about")) {
+            addQuickReplies(contentDiv);
+          }
+        } else {
+          contentDiv.textContent = text;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function addQuickReplies(container) {
+        // Only add if we don't already have quick replies
+        if (!container.querySelector(".quick-replies")) {
+          const quickRepliesDiv = document.createElement("div");
+          quickRepliesDiv.className = "quick-replies";
+          
+          // Get 4 random common questions
+          const shuffled = [...commonQuestions].sort(() => 0.5 - Math.random());
+          const selectedQuestions = shuffled.slice(0, 4);
+          
+          selectedQuestions.forEach(question => {
+            const quickReply = document.createElement("div");
+            quickReply.className = "quick-reply";
+            quickReply.textContent = question;
+            quickRepliesDiv.appendChild(quickReply);
+          });
+          
+          container.appendChild(quickRepliesDiv);
+          attachQuickReplyListeners();
+        }
+      }
+
+      function attachQuickReplyListeners() {
+        document.querySelectorAll(".quick-reply").forEach(reply => {
+          reply.addEventListener("click", function() {
+            const question = this.textContent;
+            addMessage(question, "user");
+            
+            // Show typing indicator
+            isTyping = true;
+            addTypingIndicator();
+            
+            // Simulate bot response after a short delay
+            setTimeout(() => {
+              removeTypingIndicator();
+              const response = generateResponseToQuickReply(question);
+              addMessage(response, "bot");
+              isTyping = false;
+            }, 1500);
+          });
+        });
+      }
+
+      // function generateResponseToQuickReply(question) {
+      //   // Simple response generation - in a real app you'd use your AI
+      //   const responses = {
+      //     "What's my skin type?": "To determine your skin type, I'll need to ask you a few questions. Do you often experience: 1) Shine on your forehead/nose? 2) Tightness after washing? 3) Redness or irritation?",
+      //     "Recommend a morning routine": "A good basic morning routine:\n1. Gentle cleanser\n2. Vitamin C serum\n3. Moisturizer with SPF 30+\n\nWould you like recommendations for your specific skin type?",
+      //     "Best products for dry skin": "For dry skin, I recommend:\n- Cream-based cleansers\n- Hyaluronic acid serums\n- Rich moisturizers with ceramides\n- Weekly hydrating masks",
+      //     "How to treat acne scars": "Acne scar treatments depend on the type:\n1. Red marks: Vitamin C, niacinamide\n2. Depressed scars: Professional treatments like microneedling\n3. Dark spots: Brightening agents like azelaic acid",
+      //     "Anti-aging tips for 30s": "Key anti-aging steps in your 30s:\n1. Daily SPF 30+\n2. Retinol 2-3x/week\n3. Peptide serums\n4. Hydrating eye cream\n5. Antioxidant-rich diet",
+      //     "Sensitive skin solutions": "For sensitive skin:\n- Fragrance-free products\n- Soothing ingredients like aloe\n- Patch test new products\n- Avoid harsh physical scrubs",
+      //     "Dark spot treatments": "Effective dark spot treatments:\n1. Vitamin C serum (AM)\n2. Niacinamide\n3. Alpha arbutin\n4. Professional chemical peels\nAlways use SPF to prevent worsening!"
+      //   };
+        
+      //   return `You asked about: ${question}\n\n${responses[question] || "I can help with that! Let me provide more personalized advice if you share more about your skin concerns."}`;
+      // }
+
+      function generateResponseToQuickReply(question) {
+      // Simple response generation - in a real estate app you'd use AI
+      const responses = {
+        "How do I buy a home?": "Buying a home involves several steps: 1) Determine your budget 2) Get pre-approved for a mortgage 3) Find a real estate agent 4) Search for homes 5) Make an offer and close the deal.",
+        "Best neighborhoods to invest in": "The best neighborhoods for investment depend on factors like job growth, rental demand, and property appreciation. Would you like recommendations based on your budget and goals?",
+        "How to get a mortgage?": "To get a mortgage, you'll need: 1) A good credit score 2) Proof of income 3) A down payment 4) Mortgage pre-approval from a lender.",
+        "Tips for first-time home buyers": "First-time buyers should: 1) Set a realistic budget 2) Get pre-approved 3) Work with an experienced real estate agent 4) Research loan options and grants.",
+        "How do I sell my house fast?": "To sell your house quickly: 1) Price it competitively 2) Stage it professionally 3) Market it online 4) Work with a skilled real estate agent.",
+        "Best time to sell a home": "The best time to sell is typically in the spring or summer when buyer demand is highest, but market conditions and location also play a role.",
+        "What are closing costs?": "Closing costs include lender fees, title insurance, appraisal fees, and taxes. They typically range from 2-5% of the home's purchase price."
+      };
+      
+      return responses[question] || "I can help with that! Let me provide more personalized advice if you share more details about your real estate needs.";
+    }
+
+      function startStreamingMessage() {
+        removeTypingIndicator();
+        const { messageDiv, contentDiv } = createMessageElement("bot");
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        currentStreamingMessage = {
+          element: messageDiv,
+          content: contentDiv,
+          text: "",
+          isComplete: false
+        };
+        
+        return currentStreamingMessage;
+      }
+
+      function streamMessageChunk(chunk) {
+        if (!currentStreamingMessage || currentStreamingMessage.isComplete) return;
+        
+        currentStreamingMessage.text += chunk;
+        currentStreamingMessage.content.innerHTML = marked.parse(currentStreamingMessage.text);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function completeStreamingMessage() {
+        if (currentStreamingMessage) {
+          // Add quick replies after streaming completes
+          if (!currentStreamingMessage.text.includes("You asked about")) {
+            addQuickReplies(currentStreamingMessage.content);
+          }
+          currentStreamingMessage.isComplete = true;
+          currentStreamingMessage = null;
+        }
+      }
+
+      async function simulateStreamingResponse(responseText, delay = 30) {
+        const words = responseText.split(/(\s+)/);
+        const streamingMessage = startStreamingMessage();
+        
+        for (const word of words) {
+          if (!streamingMessage) break;
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          streamMessageChunk(word);
+        }
+        
+        completeStreamingMessage();
+      }
+
+      chatForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = chatForm.querySelector("input");
+        const message = input.value.trim();
+
+        if (message && !isTyping) {
+          addMessage(message, "user");
+          input.value = "";
+
+          isTyping = true;
+          const typingIndicator = addTypingIndicator();
+
+          try {
+            const response = await fetch("http://127.0.0.1:8000/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message }),
+            });
+            
+            if (!response.ok) throw new Error("Network response was not ok");
+            
+            const data = await response.json();
+            removeTypingIndicator();
+            await simulateStreamingResponse(data.response);
+            
+          } catch (error) {
+            console.error(error);
+            removeTypingIndicator();
+            addMessage("Something went wrong... Please try again", "bot");
+          } finally {
+            isTyping = false;
+          }
+        }
+      });
+
+      // Attach quick reply listeners on initial load
+      attachQuickReplyListeners();
+    </script>
+  </body>
+</html>
